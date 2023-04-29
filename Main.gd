@@ -7,11 +7,12 @@ onready var static_line = $StaticLine
 onready var line_points = $StaticLine/LinePoints
 
 var bucketLoader = preload("res://Bucket/Bucket.tscn")
+var endScreen = preload("res://UI/EndScreen.tscn")
 var levels = [preload("res://Levels/Level1.tscn"),
 			  preload("res://Levels/Level2.tscn"),
 			  preload("res://Levels/Level3.tscn")]
 
-enum S { STATIC, DRAGGING }
+enum S { STATIC, DRAGGING, WON, LOST, LOADING }
 const STRETCH_FACTOR = 1.2
 const MAXIMUM_BUCKET_WEIGHT = 80
 const MINIMUM_BUCKET_WEIGHT = 0
@@ -21,7 +22,7 @@ const MAX_EXPECTED_DISTANCE = 400
 const STICK_TO_MOUSE_WITHIN = 30
 const MAXIMUM_SINGLE_FRAME_Y_MOVE = 1
 
-var loaded_level_idx = 2
+var loaded_level_idx = 0
 var loaded_level = null
 var state = S.STATIC
 var mouse_within_line = false
@@ -32,6 +33,7 @@ var bucket = null
 
 func reset_level_state():
 	if loaded_level != null:
+		print("freeing level")
 		loaded_level.queue_free()
 		loaded_level = null
 	
@@ -39,45 +41,68 @@ func reset_level_state():
 		bucket.queue_free()
 		bucket = null
 	
-	state = S.STATIC
 	bucket_velocity = Vector2.ZERO
 	mouse_within_line = false
-
-func level_completed():
-	print("level completed")
+	State.should_tick = false
 
 func handle_hazard_contact(penalty, _hazard):
 	print("hazard contact penalty: %d" % [penalty])
 	State.deduct_ice(penalty)
 
-func load_level():
+func won_game():
+	var end_screen = endScreen.instance()
+	state = S.WON
+	# It'd be nice if we had a retry button here
+	add_child(end_screen)
+	State.should_tick = false
+
+func lost_game():
+	var end_screen = endScreen.instance()
+	state = S.LOST
+	add_child(end_screen)
+	State.should_tick = false
+
+func load_level(index):
+	state = S.LOADING
 	reset_level_state()
 
-	if loaded_level_idx >= levels.size():
+	if index >= levels.size():
 		print("level index exceeds number of levels!")
 		return
 
-	var level = levels[loaded_level_idx].instance()
+	var level = levels[index].instance()
+	loaded_level = level
 	fixed_points = level.get_fixed_points()
 	original_length = line_length(fixed_points)
 	bucket = bucketLoader.instance()
-	bucket.position = level.get_and_hide_bucket_position()
-	var _ignore = level.connect("level_completed", self, "level_completed")
+	bucket.set_deferred("position", level.get_and_hide_bucket_position())
+	# bucket.position = level.get_and_hide_bucket_position()
+	var _ignore = level.connect("level_completed", self, "handle_level_completed")
 
 	for node in level.get_hazards():
 		node.connect("hazard_contact", self, "handle_hazard_contact", [node])
 
-	add_child(bucket)
-	add_child(level)
+	self.call_deferred("add_child", bucket)
+	# add_child(bucket)
+	self.call_deferred("add_child", level)
+	state = S.STATIC
 	# Eventually we want to connect a "points updated" function here.
 	# loaded_level.connect("level_complete", self, "load_level2")
 
+func handle_level_completed():
+	print("level %d completed" % loaded_level_idx)
+	if loaded_level_idx + 1 == levels.size():
+		won_game()
+	else:
+		loaded_level_idx += 1
+		load_level(loaded_level_idx)
+
 func _ready():
-	load_level()
+	load_level(loaded_level_idx)
 	static_line.connect("mouse_entered", self, "handle_mouse_entered")
 	static_line.connect("mouse_exited", self, "handle_mouse_exited")
 	VisualServer.set_default_clear_color(Color("6b6ab3"))
-	
+	var _ignore = State.connect("out_of_ice", self, "lost_game")
 
 func add_bucket_to_points(points_without_bucket, mouse_position) -> Array:
 	var points_before_and_after = partition_points_before_and_after(points_without_bucket, bucket.position)
@@ -120,18 +145,25 @@ func add_bucket_to_points(points_without_bucket, mouse_position) -> Array:
 			# var actual_delta_y = min(desired_delta_y, -MAXIMUM_SINGLE_FRAME_Y_MOVE)
 			bucket.move_and_collide(Vector2(0, desired_delta_y * 3))
 			# bucket_velocity.y += desired_delta_y
-			dy = min(desired_delta_y, -MAXIMUM_SINGLE_FRAME_Y_MOVE)
+			dy = max(desired_delta_y, -MAXIMUM_SINGLE_FRAME_Y_MOVE)
+
+			# bucket.set_deferred("position.y", bucket.position.y + dy)
 			bucket.position.y += dy
 
 	var bucket_point = Vector2(bucket.position.x, bucket.position.y)
 	return points_before + [bucket_point] + points_after
 
 func _physics_process(_delta):
-	if Input.is_action_just_pressed("click") and mouse_within_line:
-		state = S.DRAGGING
+	match state:
+		S.WON, S.LOST, S.LOADING: return
 	
+	if Input.is_action_just_pressed("click") and mouse_within_line and state == S.STATIC:
+		state = S.DRAGGING
+		State.should_tick = true
+
 	bucket_velocity.y = min(bucket_velocity.y + GRAVITY_DELTA, GRAVITY_MAX)
-	bucket_velocity = bucket.move_and_slide(bucket_velocity)
+	if bucket_velocity != Vector2.ZERO:
+		bucket_velocity = bucket.move_and_slide(bucket_velocity)
 
 	match state:
 		S.STATIC:
@@ -146,7 +178,8 @@ func _physics_process(_delta):
 			var proposed_length = line_length(proposed_points)
 			var allowed_length = original_length * STRETCH_FACTOR
 			if proposed_length <= allowed_length:
-				render_line(add_bucket_to_points(proposed_points, mouse_pos))
+				self.call_deferred("render_line", add_bucket_to_points(proposed_points, mouse_pos))
+				# render_line(add_bucket_to_points(proposed_points, mouse_pos))
 			else:
 				# If we have time it'd be great if we could make dragging here work
 				# isntead of ignoring it.
@@ -156,7 +189,8 @@ func render_line(points):
 	# Maybe this could be smart about keeping most of the polygons?
 	for child in static_line.get_children():
 		if child is CollisionPolygon2D:
-			child.queue_free()
+			child.call_deferred("queue_free")
+			# child.queue_free()
 
 	line_points.points = points
 	# Store the line's global position so we can reset its position after moving its parent
@@ -166,14 +200,17 @@ func render_line(points):
 	# Move the rigidbody to the center of the line, taking into account
 	# any offset the Polygon2D node may have relative to the rigidbody
 	var line_center = get_line_center()
+	# static_line.set_deferred("global_position", static_line.global_position + line_center + line_points.position)
 	static_line.global_position += line_center + line_points.position
 	# Move the line node to its original position
+	# line_points.set_deferred("global_position", line_global_position)
 	line_points.global_position = line_global_position
 
 	# line_poly may contain multiple polygons, so iterate over it
 	for poly in line_poly:
 		var collision_shape = CollisionPolygon2D.new()
 		collision_shape.polygon = offset_line_points(line_center, poly)
+		# static_line.call_deferred("add_child", collision_shape)
 		static_line.add_child(collision_shape)
 
 func partition_points_before_and_after(points, pos) -> Array:
