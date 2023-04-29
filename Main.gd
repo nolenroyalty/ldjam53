@@ -48,6 +48,7 @@ func level_completed():
 
 func handle_hazard_contact(penalty, _hazard):
 	print("hazard contact penalty: %d" % [penalty])
+	State.deduct_ice(penalty)
 
 func load_level():
 	reset_level_state()
@@ -75,6 +76,8 @@ func _ready():
 	load_level()
 	static_line.connect("mouse_entered", self, "handle_mouse_entered")
 	static_line.connect("mouse_exited", self, "handle_mouse_exited")
+	VisualServer.set_default_clear_color(Color("6b6ab3"))
+	
 
 func add_bucket_to_points(points_without_bucket, mouse_position) -> Array:
 	var points_before_and_after = partition_points_before_and_after(points_without_bucket, bucket.position)
