@@ -16,5 +16,12 @@ func get_and_hide_bucket_position():
 func handle_body_entered(_body):
 	emit_signal("level_completed")
 
+func get_hazards():
+	var hazards = []
+	for node in get_children():
+		if node.is_in_group("hazards"):
+			hazards.append(node)
+	return hazards
+
 func _ready():
 	var _ignore = $WinArea.connect("body_entered", self, "handle_body_entered")
