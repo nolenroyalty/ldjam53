@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://test.gd" type="Script" id=1]
+[ext_resource path="res://Bucket.tscn" type="PackedScene" id=2]
+
+[sub_resource type="Curve" id=1]
+_data = [ Vector2( 0.261261, 0.981818 ), 0.0, 0.0, 0, 0 ]
+
+[sub_resource type="CircleShape2D" id=2]
+radius = 34.1321
+
+[node name="Playground" type="Node2D"]
+script = ExtResource( 1 )
+
+[node name="Body" type="StaticBody2D" parent="."]
+collision_layer = 2
+input_pickable = true
+
+[node name="TestLine" type="Line2D" parent="Body"]
+points = PoolVector2Array( -10, 138, 419, 296 )
+width_curve = SubResource( 1 )
+default_color = Color( 0.0862745, 0.145098, 0.435294, 1 )
+joint_mode = 1
+
+[node name="Flinger" type="StaticBody2D" parent="."]
+collision_layer = 0
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Flinger"]
+shape = SubResource( 2 )
+
+[node name="Bucket" parent="." instance=ExtResource( 2 )]
+position = Vector2( 74, 191 )
