@@ -37,7 +37,7 @@ position = Vector2( 568, 272 )
 position = Vector2( 703, 318 )
 
 [node name="WinArea" type="Area2D" parent="."]
-position = Vector2( 587, 276 )
+position = Vector2( 590, 273 )
 collision_layer = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="WinArea"]

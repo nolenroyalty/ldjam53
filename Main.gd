@@ -6,22 +6,22 @@ extends Node2D
 onready var static_line = $StaticLine
 onready var line_points = $StaticLine/LinePoints
 
-var levelOne = preload("res://Levels/Level1.tscn")
-var levelTwo = preload("res://Levels/Level2.tscn")
 var bucketLoader = preload("res://Bucket/Bucket.tscn")
-var levels = [levelOne, levelTwo]
+var levels = [preload("res://Levels/Level1.tscn"),
+			  preload("res://Levels/Level2.tscn"),
+			  preload("res://Levels/Level3.tscn")]
 
 enum S { STATIC, DRAGGING }
-const STRETCH_FACTOR = 1.3
+const STRETCH_FACTOR = 1.2
 const MAXIMUM_BUCKET_WEIGHT = 80
 const MINIMUM_BUCKET_WEIGHT = 0
-const GRAVITY_MAX = 30
+const GRAVITY_MAX = 20
 const GRAVITY_DELTA = 2
 const MAX_EXPECTED_DISTANCE = 400
 const STICK_TO_MOUSE_WITHIN = 30
 const MAXIMUM_SINGLE_FRAME_Y_MOVE = 1
 
-var loaded_level_idx = 0
+var loaded_level_idx = 2
 var loaded_level = null
 var state = S.STATIC
 var mouse_within_line = false
@@ -46,10 +46,14 @@ func reset_level_state():
 func level_completed():
 	print("level completed")
 
+func handle_hazard_contact(penalty, _hazard):
+	print("hazard contact penalty: %d" % [penalty])
+
 func load_level():
 	reset_level_state()
 
 	if loaded_level_idx >= levels.size():
+		print("level index exceeds number of levels!")
 		return
 
 	var level = levels[loaded_level_idx].instance()
@@ -58,6 +62,10 @@ func load_level():
 	bucket = bucketLoader.instance()
 	bucket.position = level.get_and_hide_bucket_position()
 	var _ignore = level.connect("level_completed", self, "level_completed")
+
+	for node in level.get_hazards():
+		node.connect("hazard_contact", self, "handle_hazard_contact", [node])
+
 	add_child(bucket)
 	add_child(level)
 	# Eventually we want to connect a "points updated" function here.
@@ -78,12 +86,16 @@ func add_bucket_to_points(points_without_bucket, mouse_position) -> Array:
 	var slope = (closest_after.y - closest_before.y) / (closest_after.x - closest_before.x)
 	var y_without_bucket_weight = closest_before.y + (bucket.position.x - closest_before.x) * slope
 
+	var dy = 0
+
 	if mouse_position and mouse_position.distance_to(bucket.position) < STICK_TO_MOUSE_WITHIN:
 		pass
 	else:
 		var current_line_length = line_length(points_without_bucket)
 		var maximum_line_length = line_length(fixed_points) * STRETCH_FACTOR
 		var amount_of_stretch_allowed = maximum_line_length - current_line_length
+		amount_of_stretch_allowed = max(amount_of_stretch_allowed, MINIMUM_BUCKET_WEIGHT)
+
 		var max_bucket_weight = min(amount_of_stretch_allowed, MAXIMUM_BUCKET_WEIGHT)
 		# bucket_weight = max(bucket_weight, MINIMUM_BUCKET_WEIGHT)
 
@@ -92,15 +104,24 @@ func add_bucket_to_points(points_without_bucket, mouse_position) -> Array:
 		var distance_total = min(distance_to_before + distance_to_after, MAX_EXPECTED_DISTANCE)
 		var desired_bucket_weight = max_bucket_weight * float(distance_total) / MAX_EXPECTED_DISTANCE
 		desired_bucket_weight = max(desired_bucket_weight, MINIMUM_BUCKET_WEIGHT)
+
 		var desired_bucket_y = y_without_bucket_weight + desired_bucket_weight
 		var desired_delta_y = desired_bucket_y - bucket.position.y
 
 		if desired_delta_y > 0:
 			var actual_delta_y = min(desired_delta_y, MAXIMUM_SINGLE_FRAME_Y_MOVE)
+			# dy = actual_delta_y
+			# bucket_velocity.y += actual_delta_y
 			bucket.move_and_collide(Vector2(0, actual_delta_y))
-			# bucket.position.y += actual_delta_y
+		else:
+			# var actual_delta_y = min(desired_delta_y, -MAXIMUM_SINGLE_FRAME_Y_MOVE)
+			bucket.move_and_collide(Vector2(0, desired_delta_y * 3))
+			# bucket_velocity.y += desired_delta_y
+			dy = min(desired_delta_y, -MAXIMUM_SINGLE_FRAME_Y_MOVE)
+			bucket.position.y += dy
 
-	return points_before + [bucket.position] + points_after
+	var bucket_point = Vector2(bucket.position.x, bucket.position.y)
+	return points_before + [bucket_point] + points_after
 
 func _physics_process(_delta):
 	if Input.is_action_just_pressed("click") and mouse_within_line:
