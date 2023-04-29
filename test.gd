@@ -125,7 +125,7 @@ func render_line(points):
 	line.points = points
 	# Store the line's global position so we can reset its position after moving its parent
 	var line_global_position = line.global_position
-	# Generate collision polygons from the Line2D node
+	# Generate collision polygons from the L ine2D node
 	var line_poly = Geometry.offset_polyline_2d(line.points, line.width / 2, Geometry.JOIN_ROUND, Geometry.END_ROUND)
 	# Move the rigidbody to the center of the line, taking into account
 	# any offset the Polygon2D node may have relative to the rigidbody
