@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://Terrain/FixedLatchPoint.gd" type="Script" id=1]
+
+[node name="FixedLatchPoint" type="Node2D" groups=["fixed_latchpoint"]]
+script = ExtResource( 1 )
+
+[node name="PlanningSite" type="ColorRect" parent="."]
+margin_left = -8.0
+margin_top = -8.0
+margin_right = 8.0
+margin_bottom = 8.0
+color = Color( 0.764706, 0.0588235, 0.0588235, 0.466667 )
