@@ -29,3 +29,5 @@ func load_level(index) -> void:
 
 func _ready() -> void:
 	load_level(level_index)
+	State.should_tick = true
+	VisualServer.set_default_clear_color(Color("1b1b17"))

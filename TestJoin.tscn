@@ -1,0 +1,35 @@
+[gd_scene load_steps=3 format=2]
+
+[sub_resource type="CircleShape2D" id=1]
+radius = 18.9737
+
+[sub_resource type="CapsuleShape2D" id=2]
+
+[node name="Node2D" type="Node2D"]
+
+[node name="PinJoint2D" type="PinJoint2D" parent="."]
+position = Vector2( 21, 58 )
+node_a = NodePath("../RigidBody2D")
+node_b = NodePath("../RigidBody2D2")
+
+[node name="RigidBody2D" type="StaticBody2D" parent="."]
+
+[node name="ColorRect" type="ColorRect" parent="RigidBody2D"]
+margin_right = 40.0
+margin_bottom = 40.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D"]
+position = Vector2( 20, 20 )
+shape = SubResource( 1 )
+
+[node name="RigidBody2D2" type="RigidBody2D" parent="."]
+position = Vector2( 21, 87 )
+
+[node name="ColorRect" type="ColorRect" parent="RigidBody2D2"]
+margin_right = 40.0
+margin_bottom = 40.0
+color = Color( 0.415686, 0.129412, 0.129412, 1 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RigidBody2D2"]
+position = Vector2( 20, 19 )
+shape = SubResource( 2 )

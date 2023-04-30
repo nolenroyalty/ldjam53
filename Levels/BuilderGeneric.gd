@@ -8,6 +8,7 @@ const GRID_SIZE = 16
 
 var terrainRay = preload("res://Terrain/TerrainRay.tscn")
 var dynamicPole = preload("res://Terrain/DynamicPole.tscn")
+var bucketInstance = preload("res://Bucket/Bucket.tscn")
 
 onready var static_body = $StaticBody2D
 onready var line = $StaticBody2D/Line2D
@@ -17,52 +18,44 @@ enum M { BUILDING, RUNNING, EXITING }
 
 var mode = M.BUILDING
 var fixed_latch_points = []
+var original_bucket_x_position = null
 var bucket_velocity = Vector2.ZERO
 var placed_towers = {}
 
-func _ready():
-	init_fixed_latchpoints()
-	render_line_for_current_points()
-	var _ignore = $Finish.connect("body_entered", self, "emit_level_completed")
+func running_process():
+	if Input.is_action_just_pressed("ui_accept"):
+		re_enter_building_mode()
 
-func _physics_process(_delta):
-	match mode:
-		M.BUILDING: return
-		M.RUNNING:
-			bucket_velocity.y += GRAVITY
-			bucket_velocity.y = min(bucket_velocity.y, MAX_GRAVITY)
-			bucket_velocity = bucket.move_and_slide(bucket_velocity)
-		M.EXITING: return
-
-func render_line_for_current_points():
-	var points = []
-	for latchpoint in fixed_latch_points:
-		points.append(latchpoint)
-	for tower in placed_towers.values():
-		points.append(tower.get_latchpoint())
-	
-	render_line(points)
-	var bucket_position = determine_position_for_bucket(points)
-	bucket.position = bucket_position
-
-func enter_running_mode():
-	mode = M.RUNNING
-
-func process_building():
+func building_process():
 	if Input.is_action_just_pressed("ui_accept"):
 		enter_running_mode()
 		return
 
-func snap_x_position_to_grid(pos):
-	pos.x = int(pos.x / GRID_SIZE) * GRID_SIZE
-	return pos
+func building_handle_input(event):
+	if event is InputEventMouseButton and event.pressed:
+		if event.button_index == BUTTON_LEFT:
+			try_to_build_tower(event.position)
+		elif event.button_index == BUTTON_RIGHT:
+			try_to_remove_tower(event.position)
+		
+func running_process_physics(_delta):
+	pass
+	# bucket_velocity.y += GRAVITY
+	# bucket_velocity.y = min(bucket_velocity.y, MAX_GRAVITY)
+	# bucket_velocity = bucket.move_and_slide(bucket_velocity)
 
-func snap_int_to_grid(i):
-	return int(i / GRID_SIZE) * GRID_SIZE
+func re_enter_building_mode():
+	if original_bucket_x_position == null:
+		print("Tried to re-enter building mode but bucket x position isn't set?")
+		return
+	bucket.stop_moving()
+	mode = M.BUILDING
+	render_line_for_current_points()
 
-func snap_to_grid(pos):
-	return Vector2(snap_int_to_grid(pos.x), snap_int_to_grid(pos.y))
-
+func enter_running_mode():
+	mode = M.RUNNING
+	bucket.start_moving()
+	
 func can_build_tower(pos) -> bool:
 	var latchpoint_location = apply_latchpoint_x_offset(pos)
 	# Check that we're on solid ground
@@ -115,26 +108,6 @@ func build_tower(pos):
 	placed_towers[pos.x] = pole
 	return true
 
-
-func handle_building_event(event):
-	if event is InputEventMouseButton and event.pressed:
-		if event.button_index == BUTTON_LEFT:
-			try_to_build_tower(event.position)
-		elif event.button_index == BUTTON_RIGHT:
-			try_to_remove_tower(event.position)
-
-func _process(_delta):
-	match mode:
-		M.RUNNING: pass
-		M.BUILDING: process_building()
-		M.EXITING: pass
-
-func _input(event):
-	match mode:
-		M.BUILDING: handle_building_event(event)
-		M.RUNNING: pass
-		M.EXITING: pass
-
 func init_fixed_latchpoints():
 	for child in get_children():
 		if child.is_in_group("fixed_latchpoint"):
@@ -144,9 +117,28 @@ func determine_position_for_bucket(points) -> Vector2:
 	var closest_before = closest_point_before(points, bucket.position)
 	var closest_after = closest_point_after(points, bucket.position)
 	var slope = float(closest_after.y - closest_before.y) / (closest_after.x - closest_before.x)
-	var y_position = closest_before.y + slope * (bucket.position.x - closest_before.x)
+	var y_position = closest_before.y + slope * (bucket.position.x - closest_before.x) - 8
 	return Vector2(bucket.position.x, y_position)
+
+func re_instance_bucket():
+	bucket.queue_free()
+	bucket = bucketInstance.instance()
+	add_child(bucket)
+	bucket.position.x = original_bucket_x_position
+	bucket.stop_moving()
+
+func render_line_for_current_points():
+	var points = []
+	for latchpoint in fixed_latch_points:
+		points.append(latchpoint)
+	for tower in placed_towers.values():
+		points.append(tower.get_latchpoint())
 	
+	render_line(points)
+	re_instance_bucket()
+	var bucket_position = determine_position_for_bucket(points)
+	bucket.position = bucket_position
+
 func render_line(points):
 	points.sort_custom(SortByX, "sort")
 
@@ -275,6 +267,41 @@ func emit_level_completed(_body):
 	print("level completed")
 	emit_signal("level_completed")
 
+func snap_x_position_to_grid(pos):
+	pos.x = int(pos.x / GRID_SIZE) * GRID_SIZE
+	return pos
+
+func snap_int_to_grid(i):
+	return int(i / GRID_SIZE) * GRID_SIZE
+
+func snap_to_grid(pos):
+	return Vector2(snap_int_to_grid(pos.x), snap_int_to_grid(pos.y))
+	
+func _process(_delta):
+	match mode:
+		M.RUNNING: running_process()
+		M.BUILDING: building_process()
+		M.EXITING: pass
+
+func _input(event):
+	match mode:
+		M.BUILDING: building_handle_input(event)
+		M.RUNNING: pass
+		M.EXITING: pass
+
+func _physics_process(delta):
+	match mode:
+		M.BUILDING: pass
+		M.RUNNING: running_process_physics(delta)
+		M.EXITING: pass
+
+func _ready():
+	original_bucket_x_position = bucket.position.x
+	init_fixed_latchpoints()
+	render_line_for_current_points()
+	var _ignore = $Finish.connect("body_entered", self, "emit_level_completed")
+
+		
 class SortByX:
 	static func sort(a, b):
 		return a.x < b.x
