@@ -2,7 +2,7 @@
 
 [ext_resource path="res://Terrain/FixedLatchPoint.gd" type="Script" id=1]
 
-[node name="FixedLatchPoint" type="Node2D" groups=["fixed_latchpoint"]]
+[node name="FixedLatchPoint" type="Node2D" groups=["fixed_latchpoint", "latchpoint"]]
 script = ExtResource( 1 )
 
 [node name="PlanningSite" type="ColorRect" parent="."]
