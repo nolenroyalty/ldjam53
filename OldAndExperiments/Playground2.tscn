@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=2]
 
-[ext_resource path="res://Playground2.gd" type="Script" id=1]
-[ext_resource path="res://Bucket/Bucket.tscn" type="PackedScene" id=2]
+[ext_resource path="res://OldAndExperiments/Playground2.gd" type="Script" id=1]
+[ext_resource path="res://PreBuilderLevels/Bucket.tscn" type="PackedScene" id=2]
 [ext_resource path="res://Bucket.tscn" type="PackedScene" id=3]
 
 [sub_resource type="Curve" id=1]

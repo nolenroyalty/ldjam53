@@ -1,5 +1,7 @@
 extends Node2D
 
+signal level_completed
+
 const GRAVITY = 9.8
 const MAX_GRAVITY = 100
 const GRID_SIZE = 16
@@ -9,9 +11,9 @@ var dynamicPole = preload("res://Terrain/DynamicPole.tscn")
 
 onready var static_body = $StaticBody2D
 onready var line = $StaticBody2D/Line2D
-onready var rigid_bucket = $RigidBucket
+onready var bucket = $Bucket
 
-enum M { BUILDING, RUNNING }
+enum M { BUILDING, RUNNING, EXITING }
 
 var mode = M.BUILDING
 var fixed_latch_points = []
@@ -21,6 +23,7 @@ var placed_towers = {}
 func _ready():
 	init_fixed_latchpoints()
 	render_line_for_current_points()
+	var _ignore = $Finish.connect("body_entered", self, "emit_level_completed")
 
 func _physics_process(_delta):
 	match mode:
@@ -28,7 +31,8 @@ func _physics_process(_delta):
 		M.RUNNING:
 			bucket_velocity.y += GRAVITY
 			bucket_velocity.y = min(bucket_velocity.y, MAX_GRAVITY)
-			bucket_velocity = rigid_bucket.move_and_slide(bucket_velocity)
+			bucket_velocity = bucket.move_and_slide(bucket_velocity)
+		M.EXITING: return
 
 func render_line_for_current_points():
 	var points = []
@@ -38,8 +42,8 @@ func render_line_for_current_points():
 		points.append(tower.get_latchpoint())
 	
 	render_line(points)
-	var rigid_bucket_position = determine_position_for_rigid_bucket(points)
-	rigid_bucket.position = rigid_bucket_position
+	var bucket_position = determine_position_for_bucket(points)
+	bucket.position = bucket_position
 
 func enter_running_mode():
 	mode = M.RUNNING
@@ -75,6 +79,14 @@ func can_build_tower(pos) -> bool:
 		
 	return true
  
+# We'll want to track the total number of tower blocks remaining
+func try_to_remove_tower(pos):
+	pos = snap_to_grid(pos)
+	if pos.x in placed_towers:
+		placed_towers[pos.x].queue_free()
+		placed_towers.erase(pos.x)
+		render_line_for_current_points()
+
 func try_to_build_tower(pos):
 	pos = snap_to_grid(pos)
 	if can_build_tower(pos):
@@ -109,29 +121,31 @@ func handle_building_event(event):
 		if event.button_index == BUTTON_LEFT:
 			try_to_build_tower(event.position)
 		elif event.button_index == BUTTON_RIGHT:
-			pass
+			try_to_remove_tower(event.position)
 
 func _process(_delta):
 	match mode:
 		M.RUNNING: pass
 		M.BUILDING: process_building()
+		M.EXITING: pass
 
 func _input(event):
 	match mode:
 		M.BUILDING: handle_building_event(event)
 		M.RUNNING: pass
+		M.EXITING: pass
 
 func init_fixed_latchpoints():
 	for child in get_children():
 		if child.is_in_group("fixed_latchpoint"):
 			fixed_latch_points.append(child.position)
 
-func determine_position_for_rigid_bucket(points) -> Vector2:
-	var closest_before = closest_point_before(points, rigid_bucket.position)
-	var closest_after = closest_point_after(points, rigid_bucket.position)
+func determine_position_for_bucket(points) -> Vector2:
+	var closest_before = closest_point_before(points, bucket.position)
+	var closest_after = closest_point_after(points, bucket.position)
 	var slope = float(closest_after.y - closest_before.y) / (closest_after.x - closest_before.x)
-	var y_position = closest_before.y + slope * (rigid_bucket.position.x - closest_before.x)
-	return Vector2(rigid_bucket.position.x, y_position)
+	var y_position = closest_before.y + slope * (bucket.position.x - closest_before.x)
+	return Vector2(bucket.position.x, y_position)
 	
 func render_line(points):
 	points.sort_custom(SortByX, "sort")
@@ -255,6 +269,11 @@ func determine_pole_height(position):
 
 func apply_latchpoint_x_offset(pos):
 	return pos + Vector2(GRID_SIZE / 2, 0)
+
+func emit_level_completed(_body):
+	mode = M.EXITING
+	print("level completed")
+	emit_signal("level_completed")
 
 class SortByX:
 	static func sort(a, b):
