@@ -329,6 +329,7 @@ func emit_level_completed(_body):
 		M.RUNNING:
 			mode = M.EXITING
 			audio.stream = finish_sound
+			audio.volume_db = -12.0
 			audio.play()
 			print("level completed")
 			State.add_towers_used(len(placed_towers))
