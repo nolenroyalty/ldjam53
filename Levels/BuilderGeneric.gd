@@ -22,6 +22,7 @@ var fixed_latch_points = []
 var original_bucket_x_position = null
 var bucket_velocity = Vector2.ZERO
 var placed_towers = {}
+var snapped_hazard_x_coords = {}
 
 func running_process():
 	if Input.is_action_just_pressed("ui_accept"):
@@ -39,12 +40,6 @@ func building_handle_input(event):
 		elif event.button_index == BUTTON_RIGHT:
 			try_to_remove_tower(event.position)
 		
-func running_process_physics(_delta):
-	pass
-	# bucket_velocity.y += GRAVITY
-	# bucket_velocity.y = min(bucket_velocity.y, MAX_GRAVITY)
-	# bucket_velocity = bucket.move_and_slide(bucket_velocity)
-
 func re_enter_building_mode():
 	if original_bucket_x_position == null:
 		print("Tried to re-enter building mode but bucket x position isn't set?")
@@ -70,6 +65,10 @@ func can_build_tower(pos) -> bool:
 		if snapped.x == latchpoint_location.x:
 			print("Can't build a tower if there's already a latchpoint present")
 			return false
+	
+	if pos.x in snapped_hazard_x_coords:
+		print("Can't build a tower on top of a hazard")
+		return false
 		
 	return true
  
@@ -117,6 +116,17 @@ func init_fixed_latchpoints():
 	for child in get_children():
 		if child.is_in_group("fixed_latchpoint"):
 			fixed_latch_points.append(child.position)
+
+func on_hazard_hit():
+	if mode == M.RUNNING:
+		self.call_deferred("re_enter_building_mode")
+
+func init_hazards():
+	for child in get_children():
+		if child.is_in_group("hazard"):
+			child.connect("hazard_hit", self, "on_hazard_hit")
+			var xpos = snap_x_position_to_grid(child.position).x
+			snapped_hazard_x_coords[xpos] = true
 
 func determine_position_for_bucket(points) -> Vector2:
 	var closest_before = closest_point_before(points, bucket.position)
@@ -305,15 +315,10 @@ func _input(event):
 		M.RUNNING: pass
 		M.EXITING: pass
 
-func _physics_process(delta):
-	match mode:
-		M.BUILDING: pass
-		M.RUNNING: running_process_physics(delta)
-		M.EXITING: pass
-
 func _ready():
 	original_bucket_x_position = bucket.position.x
 	init_fixed_latchpoints()
+	init_hazards()
 	render_line_for_current_points()
 	var _ignore = $Finish.connect("body_entered", self, "emit_level_completed")
 

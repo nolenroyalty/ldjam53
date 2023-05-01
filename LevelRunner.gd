@@ -4,8 +4,9 @@ var endScreen = preload("res://UI/EndScreen.tscn")
 
 var levels = [ preload("res://Levels/Level1.tscn"),
 			   preload("res://Levels/LevelCaveEnter.tscn"),
-			   preload("res://Levels/LevelCave1.tscn") ]
-var level_index = 2
+			   preload("res://Levels/LevelCave1.tscn"),
+			   preload("res://Levels/LevelCaveFireJump.tscn") ]
+var level_index = 3
 var current_level = null
 
 func handle_won_game():
@@ -15,7 +16,7 @@ func handle_won_game():
 	State.should_tick = false
 
 func handle_completed_level() -> void:
-	level_index += 1
+	# level_index += 1
 	if level_index >= levels.size():
 		# Wrong, but useful for now
 		level_index = 0
