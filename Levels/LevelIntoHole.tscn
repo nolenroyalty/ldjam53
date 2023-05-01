@@ -49,6 +49,8 @@ position = Vector2( 64, 56 )
 
 [node name="Torch" parent="." instance=ExtResource( 5 )]
 position = Vector2( 520, 168 )
+frame = 1
 
 [node name="Torch2" parent="." instance=ExtResource( 5 )]
 position = Vector2( 568, 160 )
+frame = 1

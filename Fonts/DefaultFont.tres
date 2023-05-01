@@ -1,8 +1,5 @@
-[gd_resource type="DynamicFont" load_steps=2 format=2]
-
-[ext_resource path="res://Fonts/dogicapixel.ttf" type="DynamicFontData" id=1]
+[gd_resource type="DynamicFont" format=2]
 
 [resource]
 resource_local_to_scene = true
-size = 8
-font_data = ExtResource( 1 )
+size = 13

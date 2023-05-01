@@ -2,6 +2,11 @@ extends Node2D
 
 signal level_completed
 signal error_trying_to_build(message)
+signal launched
+signal restart
+signal tower_built
+signal tower_built_at_same_spot
+signal tower_deleted
 
 const GRAVITY = 9.8
 const MAX_GRAVITY = 100
@@ -16,6 +21,11 @@ onready var static_body = $StaticBody2D
 onready var line = $StaticBody2D/Line2D
 onready var bucket = $Bucket
 
+var can_launch = true
+var can_restart = true
+var can_build = true
+var can_delete = true
+
 enum M { BUILDING, RUNNING, EXITING }
 
 var mode = M.BUILDING
@@ -26,12 +36,14 @@ var placed_towers = {}
 var snapped_hazard_x_coords = {}
 
 func running_process():
-	if Input.is_action_just_pressed("ui_accept"):
+	if can_restart and Input.is_action_just_pressed("ui_accept"):
 		re_enter_building_mode()
+		emit_signal("restart")
 
 func building_process():
-	if Input.is_action_just_pressed("ui_accept"):
+	if can_launch and Input.is_action_just_pressed("ui_accept"):
 		enter_running_mode()
+		emit_signal("launched")
 		return
 
 func building_handle_input(event):
@@ -54,6 +66,8 @@ func enter_running_mode():
 	bucket.start_moving()
 	
 func can_build_tower(pos) -> bool:
+	if not can_build: return false
+
 	var latchpoint_location = apply_latchpoint_x_offset(pos)
 	# Check that we're on solid ground
 	if not we_are_over_solid_ground(latchpoint_location):
@@ -75,19 +89,26 @@ func can_build_tower(pos) -> bool:
  
 # We'll want to track the total number of tower blocks remaining
 func try_to_remove_tower(pos):
+	if not can_delete: return
+
 	pos = snap_to_grid(pos)
 	if pos.x in placed_towers:
 		placed_towers[pos.x].queue_free()
 		placed_towers.erase(pos.x)
 		render_line_for_current_points()
+		emit_signal("tower_deleted")
 
 func try_to_build_tower(pos):
 	pos = snap_to_grid(pos)
 	if can_build_tower(apply_latchpoint_x_offset(pos)):
+		var there_was_a_tower = false
 		if pos.x in placed_towers:
+			there_was_a_tower = true
 			placed_towers[pos.x].queue_free()
 			placed_towers.erase(pos.x)
 		if build_tower(pos):
+			if there_was_a_tower:
+				emit_signal("tower_built_at_same_spot")
 			render_line_for_current_points()
 
 func build_tower(pos):
@@ -111,6 +132,7 @@ func build_tower(pos):
 	add_child(pole)
 	print("build tower pos %s | height %s" % [pos, height])
 	placed_towers[pos.x] = pole
+	emit_signal("tower_built")
 	return true
 
 func init_fixed_latchpoints():
@@ -294,6 +316,7 @@ func apply_latchpoint_x_offset(pos):
 func emit_level_completed(_body):
 	mode = M.EXITING
 	print("level completed")
+	State.add_towers_used(len(placed_towers))
 	emit_signal("level_completed")
 
 func snap_x_position_to_grid(pos):
@@ -324,7 +347,6 @@ func _ready():
 	init_hazards()
 	render_line_for_current_points()
 	var _ignore = $Finish.connect("body_entered", self, "emit_level_completed")
-
 		
 class SortByX:
 	static func sort(a, b):

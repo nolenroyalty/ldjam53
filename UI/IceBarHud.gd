@@ -1,6 +1,6 @@
 extends CanvasLayer
 
-onready var ice_bar = $IceBar
+onready var ice_bar = $IceBar 
 onready var ice_bar_label = $IceBar/Label
 
 var starting_bar_width = 0

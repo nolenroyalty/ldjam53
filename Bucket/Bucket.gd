@@ -31,7 +31,7 @@ func _physics_process(_delta):
 	if mode == RigidBody2D.MODE_RIGID and in_string: bump_up()
 
 func reset_play_sound_state():
-	yield(get_tree().create_timer(0.5), "timeout")
+	yield(get_tree().create_timer(0.9), "timeout")
 	can_play_sound = true
 
 func collided(body):

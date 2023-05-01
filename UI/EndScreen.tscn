@@ -17,6 +17,11 @@ font_data = SubResource( 3 )
 [node name="EndScreen" type="CanvasLayer"]
 script = ExtResource( 2 )
 
+[node name="ColorRect" type="ColorRect" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color( 0.611765, 0.470588, 0.160784, 1 )
+
 [node name="Title" type="Label" parent="."]
 anchor_left = 0.5
 anchor_top = 0.5
@@ -35,9 +40,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = -300.0
+margin_left = -320.0
 margin_top = -7.0
-margin_right = 300.0
+margin_right = 320.0
 margin_bottom = 7.0
 custom_fonts/font = SubResource( 2 )
 text = "Ice Remaining: 10%"
@@ -48,10 +53,23 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-margin_left = -300.0
+margin_left = -320.0
 margin_top = 24.0
-margin_right = 300.0
+margin_right = 320.0
 margin_bottom = 38.0
 custom_fonts/font = SubResource( 2 )
 text = "Total Time: 30 seconds"
+align = 1
+
+[node name="TowersUsed" type="Label" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = -320.0
+margin_top = 54.0
+margin_right = 320.0
+margin_bottom = 68.0
+custom_fonts/font = SubResource( 2 )
+text = "Towers Used: 30"
 align = 1
