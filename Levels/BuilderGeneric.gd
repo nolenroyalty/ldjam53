@@ -18,7 +18,7 @@ var dynamicPole = preload("res://Terrain/DynamicPole.tscn")
 var bucketInstance = preload("res://Bucket/Bucket.tscn")
 var fadeInRect = preload("res://Effects/FadeInRect.tscn")
 var launch_sound = preload("res://Sounds/launch1.wav")
-var finish_sound = preload("res://Sounds/complete2.wav")
+var finish_sound = preload("res://Sounds/complete3.wav")
 
 onready var static_body = $StaticBody2D
 onready var line = $StaticBody2D/Line2D
@@ -28,7 +28,6 @@ var can_launch = true
 var can_restart = true
 var can_build = true
 var can_delete = true
-var fader_rect = null
 var audio = null
 
 enum M { BUILDING, RUNNING, EXITING }
@@ -333,7 +332,11 @@ func emit_level_completed(_body):
 			audio.play()
 			print("level completed")
 			State.add_towers_used(len(placed_towers))
-			fader_rect.fade_out()
+			# We do this so that the rect appears over things like the bucket that
+			# We've added after the scene was created
+			var fader_rect = fadeInRect.instance()
+			fader_rect.FADE_OUT_NOT_IN = true
+			add_child(fader_rect)
 			yield(fader_rect, "faded_out")
 			emit_signal("level_completed")
 
@@ -360,7 +363,7 @@ func _input(event):
 		M.EXITING: pass
 
 func _ready():
-	fader_rect = fadeInRect.instance()
+	var fader_rect = fadeInRect.instance()
 	add_child(fader_rect)
 	audio = AudioStreamPlayer.new()
 	add_child(audio)

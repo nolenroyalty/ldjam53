@@ -1,6 +1,7 @@
 extends ColorRect
 onready var anim = $AnimationPlayer
 export var SET_SHOULD_TICK = true
+export var FADE_OUT_NOT_IN = false
 signal faded_out
 
 func fade_and_enable_ticking():
@@ -17,4 +18,5 @@ func fade_out():
 
 func _ready():
 	if SET_SHOULD_TICK:	State.should_tick = false
-	fade_and_enable_ticking()
+	if FADE_OUT_NOT_IN: fade_out()
+	else: fade_and_enable_ticking()
