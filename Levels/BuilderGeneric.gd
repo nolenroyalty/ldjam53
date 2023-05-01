@@ -1,6 +1,7 @@
 extends Node2D
 
 signal level_completed
+signal error_trying_to_build(message)
 
 const GRAVITY = 9.8
 const MAX_GRAVITY = 100
@@ -243,12 +244,14 @@ func we_are_over_solid_ground(position):
 
 	var collision_point = ray.get_collision_point()
 	if snap_int_to_grid(collision_point.y) != int(collision_point.y):
+		emit_signal("error_trying_to_build", "Build on flat ground away from torches")
 		# We're over a slant
 		print("Can't build - over slant - start pos %s | collision point %s" % [position, collision_point])
 		return false
 
 	if int(collision_point.y / GRID_SIZE) * GRID_SIZE != int(collision_point.y):
 		# We're over a slant
+		emit_signal("error_trying_to_build", "Build on flat ground away from torches")
 		print("Can't build - over slant - start pos %s | collision point %s" % [position, collision_point])
 		return false
 	

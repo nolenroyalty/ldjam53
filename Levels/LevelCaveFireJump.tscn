@@ -43,7 +43,7 @@ position = Vector2( 32, 43 )
 
 [node name="Torch3" parent="." instance=ExtResource( 2 )]
 position = Vector2( 464, 200 )
-frame = 0
+frame = 1
 
 [node name="FixedLatchPoint" parent="." instance=ExtResource( 4 )]
 position = Vector2( -120, -40 )
