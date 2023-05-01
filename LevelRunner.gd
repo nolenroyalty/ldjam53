@@ -9,7 +9,7 @@ var levels = [ preload("res://Levels/Level1.tscn"),
 			   preload("res://Levels/LevelCave1.tscn"),
 			   preload("res://Levels/LevelCaveFireJump.tscn"),
 			   preload("res://Levels/LevelIntoHole.tscn") ]
-var level_index = 0
+var level_index = 3
 var current_level = null
 
 func end_game():

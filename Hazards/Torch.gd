@@ -11,7 +11,7 @@ func handle_bucket_hit_flame(body):
 
 	emit_signal("hazard_hit")
 	audio.stream = sound
-	audio.volume_db = -20.0
+	# audio.volume_db = -5.0
 	audio.play() 
 
 func _ready():
