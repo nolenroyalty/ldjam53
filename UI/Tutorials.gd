@@ -23,9 +23,9 @@ func _process(_delta):
 			S.RESTART:
 				label.text = "Obstacles will stop the bucket.\n\nPress Space to move the bucket back to the start of the level."
 			S.BUILD_TOWER:
-				label.text = "You can build towers to change the path of the bucket.\n\nClick over flat ground to build a tower."
+				label.text = "Left click over flat ground to build a tower. Towers change the path of the bucket.\n\n(Build a tower to continue)"
 			S.CHANGE_TOWER:
-				label.text = "Click above or below a tower to change its height.\n\n(Change your tower's height to continue)"
+				label.text = "Left click above or below a tower to change its height.\n\n(Change your tower's height to continue)"
 			S.DELETE_TOWER:
 				label.text = "Right click to delete a tower.\n\n(Delete a tower to continue)"
 			S.FINISH:

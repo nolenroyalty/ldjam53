@@ -18,15 +18,22 @@ config/icon="res://icon.png"
 
 State="*res://State.gd"
 BackgroundMusic="*res://BackgroundMusic.tscn"
+IntegerResolutionHandler="*res://addons/integer_resolution_handler/integer_resolution_handler.gd"
 
 [display]
 
+window/integer_resolution_handler/base_width=640
+window/integer_resolution_handler/base_height=448
 window/size/width=640
 window/size/height=448
 window/size/test_width=1280
 window/size/test_height=896
 window/stretch/mode="2d"
 window/stretch/aspect="keep"
+
+[editor_plugins]
+
+enabled=PoolStringArray( "res://addons/integer_resolution_handler/plugin.cfg" )
 
 [global]
 

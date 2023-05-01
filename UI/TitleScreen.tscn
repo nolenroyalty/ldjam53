@@ -19,8 +19,6 @@ script = ExtResource( 4 )
 texture = ExtResource( 1 )
 centered = false
 
-[node name="SceneTransitionRect" parent="." instance=ExtResource( 5 )]
-
 [node name="CenterContainer" type="CenterContainer" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -58,6 +56,10 @@ hframes = 2
 [node name="CollisionShape2D" type="CollisionShape2D" parent="CenterContainer2/Control/DisableTutorials/Area2D"]
 position = Vector2( -108, 1 )
 shape = SubResource( 1 )
+
+[node name="SceneTransitionRect" parent="." instance=ExtResource( 5 )]
+margin_right = 640.0
+margin_bottom = 448.0
 
 [node name="DropletSpawnLocation" type="Node2D" parent="."]
 position = Vector2( 307, 284 )
