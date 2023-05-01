@@ -36,7 +36,6 @@ func reset_play_sound_state():
 
 func collided(body):
 	if body.collision_layer == 2 and can_play_sound and not body.is_in_group("droplet"):
-		print(body)
 		can_play_sound = false
 		audio.stream = sound
 		# audio.volume_db = -10.0

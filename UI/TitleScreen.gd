@@ -1,5 +1,6 @@
 extends Node2D
 onready var disable_tutorials = $CenterContainer2/Control/DisableTutorials
+onready var transition_rect = $SceneTransitionRect
 var mouse_in_disable_tutorials_area = false
 var dropletInstance = preload("res://Effects/Droplet.tscn")
 
@@ -25,8 +26,8 @@ func _on_Area2D_mouse_exited():
 
 func _on_TextureButton_pressed():
 	print("start game")
-	# Make LevelRunner the current scene
-	get_tree().change_scene("res://LevelRunner.tscn")
+	transition_rect.transition_to("res://LevelRunner.tscn")
+	# get_tree().change_scene("res://LevelRunner.tscn")
 
 func spawn_droplets_forever():
 	while true:

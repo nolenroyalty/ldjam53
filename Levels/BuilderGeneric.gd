@@ -16,6 +16,9 @@ const MAX_HEIGHT = 448
 var terrainRay = preload("res://Terrain/TerrainRay.tscn")
 var dynamicPole = preload("res://Terrain/DynamicPole.tscn")
 var bucketInstance = preload("res://Bucket/Bucket.tscn")
+var fadeInRect = preload("res://Effects/FadeInRect.tscn")
+var launch_sound = preload("res://Sounds/launch1.wav")
+var finish_sound = preload("res://Sounds/complete2.wav")
 
 onready var static_body = $StaticBody2D
 onready var line = $StaticBody2D/Line2D
@@ -25,6 +28,8 @@ var can_launch = true
 var can_restart = true
 var can_build = true
 var can_delete = true
+var fader_rect = null
+var audio = null
 
 enum M { BUILDING, RUNNING, EXITING }
 
@@ -42,6 +47,8 @@ func running_process():
 
 func building_process():
 	if can_launch and Input.is_action_just_pressed("ui_accept"):
+		audio.stream = launch_sound
+		audio.play()
 		enter_running_mode()
 		emit_signal("launched")
 		return
@@ -314,10 +321,21 @@ func apply_latchpoint_x_offset(pos):
 	return pos + Vector2(GRID_SIZE / 2, 0)
 
 func emit_level_completed(_body):
-	mode = M.EXITING
-	print("level completed")
-	State.add_towers_used(len(placed_towers))
-	emit_signal("level_completed")
+	match mode:
+		M.EXITING:
+			print("ignoring repeated level completed signal because we are already exiting")
+			return
+		M.BUILDING:
+			print("Bug: got level completed signal in building mode")
+		M.RUNNING:
+			mode = M.EXITING
+			audio.stream = finish_sound
+			audio.play()
+			print("level completed")
+			State.add_towers_used(len(placed_towers))
+			fader_rect.fade_out()
+			yield(fader_rect, "faded_out")
+			emit_signal("level_completed")
 
 func snap_x_position_to_grid(pos):
 	pos.x = int(pos.x / GRID_SIZE) * GRID_SIZE
@@ -342,6 +360,11 @@ func _input(event):
 		M.EXITING: pass
 
 func _ready():
+	fader_rect = fadeInRect.instance()
+	add_child(fader_rect)
+	audio = AudioStreamPlayer.new()
+	add_child(audio)
+
 	original_bucket_x_position = bucket.position.x
 	init_fixed_latchpoints()
 	init_hazards()
