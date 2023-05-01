@@ -5,8 +5,9 @@ var endScreen = preload("res://UI/EndScreen.tscn")
 var levels = [ preload("res://Levels/Level1.tscn"),
 			   preload("res://Levels/LevelCaveEnter.tscn"),
 			   preload("res://Levels/LevelCave1.tscn"),
-			   preload("res://Levels/LevelCaveFireJump.tscn") ]
-var level_index = 3
+			   preload("res://Levels/LevelCaveFireJump.tscn"),
+			   preload("res://Levels/LevelIntoHole.tscn") ]
+var level_index = 4
 var current_level = null
 
 func handle_won_game():
