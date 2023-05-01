@@ -12,7 +12,7 @@ var ice_remaining = STARTING_ICE setget set_ice_remaining
 var start_time = null
 var should_tick = false
 var towers_used = 0 setget set_towers_used
-var disable_tutorials = true
+var disable_tutorials = false
 
 func set_ice_remaining(value):
 	var was_already_zero = ice_remaining == 0

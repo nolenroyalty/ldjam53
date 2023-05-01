@@ -50,11 +50,10 @@ tile_data = PoolIntArray( 6, 1, 1, 7, 1, 2, 8, 1, 2, 9, 1, 2, 10, 1, 2, 11, 1, 2
 
 [node name="Torch" parent="." instance=ExtResource( 5 )]
 position = Vector2( 128, 320 )
-frame = 1
 
 [node name="Torch2" parent="." instance=ExtResource( 5 )]
 position = Vector2( 432, 328 )
-frame = 0
+frame = 1
 
 [node name="End" type="Sprite" parent="."]
 position = Vector2( 656, 288 )

@@ -13,7 +13,7 @@ var levels = [ preload("res://Levels/Level1.tscn"),
 			   preload("res://Levels/LevelCaveFireJump.tscn"),
 			   preload("res://Levels/LevelIntoHole.tscn"),
 			   preload("res://Levels/LevelMomentum.tscn") ]
-var level_index = 6
+var level_index = 0
 var current_level = null
 var level_completed = false
 
@@ -37,7 +37,7 @@ func handle_completed_tutorial() -> void:
 		tutorials.call_deferred("queue_free")
 		# We can actually complete the level
 		State.reset_start_time()
-		handle_completed_level(false)
+		handle_completed_level(true)
 	else:
 		# Jesus this code is bad
 		var can_launch = current_level.can_launch
@@ -125,6 +125,8 @@ func handle_tutorial_finished():
 func _ready() -> void:
 	VisualServer.set_default_clear_color(Color("1b1b17"))
 	transition_anim.play("fade_in_from_black")
+	if State.disable_tutorials: level_index = 1
+
 	load_level(level_index)
 	State.should_tick = true
 	State.reset_start_time()

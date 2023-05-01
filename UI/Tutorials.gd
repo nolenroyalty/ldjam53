@@ -19,15 +19,15 @@ func _process(_delta):
 		update_text = false
 		match state:
 			S.LAUNCH:
-				label.text = "Your goal: get the ice bucket to the bottom of the mountain while it's still cold.\n\nPress Space to launch the bucket."
+				label.text = "Your goal: deliver the ice bucket to the bottom of the mountain while it's still cold.\n\nPress Space to launch the bucket."
 			S.RESTART:
 				label.text = "Obstacles will stop the bucket.\n\nPress Space to move the bucket back to the start of the level."
 			S.BUILD_TOWER:
-				label.text = "Build towers by clicking over flat ground before launching.\n\nTowers will change the path of the bucket."
+				label.text = "You can build towers to change the path of the bucket.\n\nClick over flat ground to build a tower."
 			S.CHANGE_TOWER:
-				label.text = "Click above or below a tower to change its height."
+				label.text = "Click above or below a tower to change its height.\n\n(Change your tower's height to continue)"
 			S.DELETE_TOWER:
-				label.text = "Right click to delete a tower."
+				label.text = "Right click to delete a tower.\n\n(Delete a tower to continue)"
 			S.FINISH:
 				pass
 				# label.text = "Get the bucket to the bottom right of the screen to complete the level."
@@ -55,7 +55,7 @@ func _process(_delta):
 	
 	if deleted_tower and state == S.DELETE_TOWER:
 		yield(get_tree().create_timer(1.0), "timeout")
-		label.text = "Nice job! Now get the ice to the bottom right of the screen.\n\nGood luck!"
+		label.text = "Nice job! Now build towers, launch the ice bucket, and get the bucket to the bottom right of the screen.\n\nGood luck!"
 		state = S.FINISH
 	
 
