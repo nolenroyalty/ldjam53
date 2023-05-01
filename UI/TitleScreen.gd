@@ -27,7 +27,6 @@ func _on_Area2D_mouse_exited():
 func _on_TextureButton_pressed():
 	print("start game")
 	transition_rect.transition_to("res://LevelRunner.tscn")
-	# get_tree().change_scene("res://LevelRunner.tscn")
 
 func spawn_droplets_forever():
 	while true:
