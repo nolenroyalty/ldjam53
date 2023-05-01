@@ -1,5 +1,7 @@
 extends RigidBody2D
 
+var dropletInstance = preload("res://Effects/Droplet.tscn")
+
 onready var carriage = $Carriage
 onready var string_detector = $StringDetector
 onready var audio = $AudioStreamPlayer2D
@@ -33,12 +35,19 @@ func reset_play_sound_state():
 	can_play_sound = true
 
 func collided(body):
-	if body.collision_layer == 2 and can_play_sound:
+	if body.collision_layer == 2 and can_play_sound and not body.is_in_group("droplet"):
+		print(body)
 		can_play_sound = false
 		audio.stream = sound
-		audio.volume_db = -10.0
+		# audio.volume_db = -10.0
 		audio.play()
 		reset_play_sound_state()
+
+func maybe_spawn_droplet(percent_ice_remaining):
+	if percent_ice_remaining % 5 == 0:
+		var droplet = dropletInstance.instance()
+		droplet.global_position = $DropletSpawnPoint.global_position
+		get_parent().add_child(droplet)
 
 func _ready():
 	stop_moving()
@@ -46,3 +55,4 @@ func _ready():
 	_ignore = string_detector.connect("body_exited", self, "string_exited")
 	_ignore = carriage.connect("body_entered", self, "collided")
 	_ignore = self.connect("body_entered", self, "collided")
+	_ignore = State.connect("ice_updated", self, "maybe_spawn_droplet")

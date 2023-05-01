@@ -16,7 +16,8 @@ func set_ice_remaining(value):
 	if ice_remaining < 0:
 		ice_remaining = 0
 
-	emit_signal("ice_updated", ice_remaining)
+	var percent_ice_remaining = int((float(ice_remaining) / STARTING_ICE) * 100)
+	emit_signal("ice_updated", percent_ice_remaining)
 	if ice_remaining == 0 and not was_already_zero:
 		emit_signal("out_of_ice")
 	

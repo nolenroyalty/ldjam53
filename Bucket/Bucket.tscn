@@ -74,3 +74,6 @@ position = Vector2( 0, -8 )
 shape = SubResource( 7 )
 
 [node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+
+[node name="DropletSpawnPoint" type="Node2D" parent="."]
+position = Vector2( 0, 52 )
