@@ -1,29 +1,18 @@
-extends Sprite
+extends AnimatedSprite
+signal hazard_hit(ice_damage_percent)
+onready var flame_area = $FlameArea
+onready var audio = $AudioStreamPlayer2D
+var sound = preload("res://Sounds/fire2.wav")
+var ice_damage_percent = 5
 
-export var PENALTY = 35
-var MAX_HAZARD_COUNTER = 60
-var hazard_counter = 0
-var is_hazarding = false
+func handle_bucket_hit_flame(body):
+	if not body.is_in_group("can_be_hurt_by_hazard"):
+		return
 
-signal hazard_contact(penalty)
-
-func handle_body_entered(_body):
-	is_hazarding = true
-
-func handle_body_exited(_body):
-	is_hazarding = false
-	hazard_counter = 0
-
-func _physics_process(_delta):
-	if is_hazarding:
-		if hazard_counter == 0:
-			emit_signal("hazard_contact", PENALTY)
-		
-		hazard_counter += 1
-		
-		if hazard_counter >= MAX_HAZARD_COUNTER:
-			hazard_counter = 0
+	emit_signal("hazard_hit", ice_damage_percent)
+	audio.stream = sound
+	audio.volume_db = -20.0
+	audio.play() 
 
 func _ready():
-	var _ignore = $Area2D.connect("body_entered", self, "handle_body_entered")
-	_ignore = $Area2D.connect("body_exited", self, "handle_body_exited")
+	flame_area.connect("body_entered", self, "handle_bucket_hit_flame")

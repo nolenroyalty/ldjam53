@@ -3,7 +3,7 @@
 [ext_resource path="res://PreBuilderLevels/LevelGeneric.gd" type="Script" id=1]
 [ext_resource path="res://PreBuilderLevels/Bucket.tscn" type="PackedScene" id=2]
 [ext_resource path="res://Terrain/Landscape.tscn" type="PackedScene" id=3]
-[ext_resource path="res://Hazards/Torch.tscn" type="PackedScene" id=4]
+[ext_resource path="res://Hazards/Old/Torch.tscn" type="PackedScene" id=4]
 
 [sub_resource type="CapsuleShape2D" id=1]
 radius = 19.0

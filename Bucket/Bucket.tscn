@@ -35,9 +35,8 @@ position = Vector2( -0.500006, -7.5 )
 rotation = 1.57079
 shape = SubResource( 8 )
 
-[node name="Carriage" type="RigidBody2D" parent="."]
+[node name="Carriage" type="RigidBody2D" parent="." groups=["can_be_hurt_by_hazard"]]
 position = Vector2( 0, 34 )
-collision_layer = 0
 collision_mask = 2
 mass = 2.0
 physics_material_override = SubResource( 4 )
