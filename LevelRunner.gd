@@ -2,8 +2,10 @@ extends Node2D
 
 var endScreen = preload("res://UI/EndScreen.tscn")
 
-var levels = [ preload("res://Levels/Level1.tscn") ]
-var level_index = 0
+var levels = [ preload("res://Levels/Level1.tscn"),
+			   preload("res://Levels/LevelCaveEnter.tscn"),
+			   preload("res://Levels/LevelCave1.tscn") ]
+var level_index = 2
 var current_level = null
 
 func handle_won_game():

@@ -5,6 +5,7 @@ signal level_completed
 const GRAVITY = 9.8
 const MAX_GRAVITY = 100
 const GRID_SIZE = 16
+const MAX_HEIGHT = 448
 
 var terrainRay = preload("res://Terrain/TerrainRay.tscn")
 var dynamicPole = preload("res://Terrain/DynamicPole.tscn")
@@ -82,7 +83,7 @@ func try_to_remove_tower(pos):
 
 func try_to_build_tower(pos):
 	pos = snap_to_grid(pos)
-	if can_build_tower(pos):
+	if can_build_tower(apply_latchpoint_x_offset(pos)):
 		if pos.x in placed_towers:
 			placed_towers[pos.x].queue_free()
 			placed_towers.erase(pos.x)
@@ -93,10 +94,14 @@ func build_tower(pos):
 	var pole = dynamicPole.instance()
 	pole.position.x = pos.x
 	
-	var height = determine_pole_height(pos)
+	var height = determine_pole_height(apply_latchpoint_x_offset(pos))
 	if height == null:
 		print("Received null height??")
 		return false
+	
+	if height == 0:
+		print("zero height")
+		return false 
 	# Not clear to me why we need this -1 but I'm not debugging it at
 	# 2 AM
 	height -= 1
@@ -236,6 +241,17 @@ func we_are_over_solid_ground(position):
 		# We're over a slant
 		print("Can't build - over slant - start pos %s | collision point %s" % [position, collision_point])
 		return false
+	
+	if int(collision_point.y) < 0 or int(collision_point.y) > MAX_HEIGHT:
+		# There's flat ground but it's outside the visible scene
+		print("Can't build over flat ground outside the viewport - pos %s | collision point %s" % [position, collision_point])
+		return false
+
+	if int(collision_point.y) - position.y < GRID_SIZE:
+		# WE're trying to build within the ground
+		print("Can't build in the ground, silly | start pos %s | collision point %s" % [position, collision_point])
+		return false
+
 	return true
 
 # Definite copy-pasted code here :/
