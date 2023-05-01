@@ -9,9 +9,11 @@ onready var transition_anim = $Transition/TransitionAnimator
 var levels = [ preload("res://Levels/Level1.tscn"),
 			   preload("res://Levels/LevelCaveEnter.tscn"),
 			   preload("res://Levels/LevelCave1.tscn"),
+			   preload("res://Levels/LevelCave2.tscn"),
 			   preload("res://Levels/LevelCaveFireJump.tscn"),
-			   preload("res://Levels/LevelIntoHole.tscn") ]
-var level_index = 0
+			   preload("res://Levels/LevelIntoHole.tscn"),
+			   preload("res://Levels/LevelMomentum.tscn") ]
+var level_index = 6
 var current_level = null
 var level_completed = false
 
@@ -34,7 +36,8 @@ func handle_completed_tutorial() -> void:
 		tutorials.finished = true
 		tutorials.call_deferred("queue_free")
 		# We can actually complete the level
-		handle_completed_level()
+		State.reset_start_time()
+		handle_completed_level(false)
 	else:
 		# Jesus this code is bad
 		var can_launch = current_level.can_launch
@@ -49,12 +52,12 @@ func handle_completed_tutorial() -> void:
 		current_level.can_build = can_build
 		current_level.can_delete = can_delete
 
-func handle_completed_level() -> void:
+func handle_completed_level(increment_level=true) -> void:
 	if level_completed: return
 	if State.disable_tutorials == false:
 		handle_completed_tutorial()
 	else:
-		level_index += 1
+		if increment_level: level_index += 1
 		level_completed = true
 		if level_index >= levels.size():
 			# level_index = 0
@@ -124,6 +127,7 @@ func _ready() -> void:
 	transition_anim.play("fade_in_from_black")
 	load_level(level_index)
 	State.should_tick = true
+	State.reset_start_time()
 
 	if State.disable_tutorials:
 		tutorials.call_deferred("queue_free")

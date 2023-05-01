@@ -6,7 +6,7 @@ signal out_of_ice()
 
 const STARTING_ICE = 100
 const MELT_RATE = 1
-const MELT_EVERY_N_SECONDS = 120.0 / 100.0
+const MELT_EVERY_N_SECONDS = 180.0 / 100.0 
 
 var ice_remaining = STARTING_ICE setget set_ice_remaining
 var start_time = null
@@ -34,6 +34,9 @@ func set_towers_used(amount):
 
 func add_towers_used(amount):
 	set_towers_used(towers_used + amount)
+
+func reset_start_time():
+	start_time = OS.get_unix_time()
 
 func _ready():
 	start_time = OS.get_unix_time()
